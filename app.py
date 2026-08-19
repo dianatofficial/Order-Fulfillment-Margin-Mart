@@ -1,10 +1,17 @@
-﻿import streamlit as st
+﻿import sys
+from pathlib import Path
+
+# Ensure project root is in sys.path for Streamlit Cloud / Docker / Local execution
+PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+import streamlit as st
 import duckdb
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from pathlib import Path
-from src.config import DUCKDB_PATH, DATA_DIR
+from src.config import DUCKDB_PATH, DATA_DIR, RAW_DATA_DIR
 
 st.set_page_config(
     page_title="Order Fulfillment & Margin Mart",
@@ -25,9 +32,18 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+def ensure_database_ready():
+    # If database file does not exist, trigger the full pipeline to build tables
+    if not DUCKDB_PATH.exists():
+        from src.pipeline.generate_raw_data import main as gen_data
+        from src.pipeline.transform_mart import run_transformations
+        gen_data()
+        run_transformations()
+
 @st.cache_resource
 def get_db_connection():
-    return duckdb.connect(str(DUCKDB_PATH), read_only=True)
+    ensure_database_ready()
+    return duckdb.connect(str(DUCKDB_PATH))
 
 con = get_db_connection()
 
