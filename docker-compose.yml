@@ -1,0 +1,11 @@
+﻿version: '3.8'
+
+services:
+  order-margin-mart:
+    build: .
+    container_name: order_fulfillment_margin_mart
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
