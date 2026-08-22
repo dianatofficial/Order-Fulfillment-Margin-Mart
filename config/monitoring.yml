@@ -1,0 +1,5 @@
+
+# Revision 3.35
+monitoring:
+  enabled: true
+  metrics_interval: 60s
